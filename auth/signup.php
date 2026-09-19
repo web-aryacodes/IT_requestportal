@@ -30,10 +30,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare('SELECT id FROM users WHERE email = ?');
         $stmt->bind_param('s', $email);
         $stmt->execute();
-        $result = $stmt->get_result();
 
-        if ($result->num_rows > 0) {
+        if ($stmt->get_result()->num_rows > 0) {
             $errors[] = 'An account with this email already exists.';
+        }
+
+        $stmt->close();
+    }
+
+    if (empty($errors)) {
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+        $role = 'employee';
+
+        $stmt = $conn->prepare(
+            'INSERT INTO users (name, email, password, contact, role) VALUES (?, ?, ?, ?, ?)'
+        );
+
+        $stmt->bind_param(
+            'sssss',
+            $name,
+            $email,
+            $passwordHash,
+            $contact,
+            $role
+        );
+
+        if ($stmt->execute()) {
+            $success = 'Account created successfully. You can now log in.';
+        } else {
+            $errors[] = 'Unable to create account. Please try again.';
         }
 
         $stmt->close();
