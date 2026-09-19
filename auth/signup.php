@@ -1,4 +1,44 @@
 <?php
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_once '../config/db.php';
+
+    $name = trim($_POST['name'] ?? '');
+    $email = strtolower(trim($_POST['email'] ?? ''));
+    $contact = trim($_POST['contact'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    $errors = [];
+
+    if ($name === '' || strlen($name) < 2 || strlen($name) > 100) {
+        $errors[] = 'Enter a valid name.';
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255) {
+        $errors[] = 'Enter a valid email address.';
+    }
+
+    if (!preg_match('/^\d{10}$/', $contact)) {
+        $errors[] = 'Enter a valid 10-digit contact number.';
+    }
+
+    if (strlen($password) < 8) {
+        $errors[] = 'Password must be at least 8 characters.';
+    }
+
+    if (empty($errors)) {
+        $stmt = $conn->prepare('SELECT id FROM users WHERE email = ?');
+        $stmt->bind_param('s', $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            $errors[] = 'An account with this email already exists.';
+        }
+
+        $stmt->close();
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
