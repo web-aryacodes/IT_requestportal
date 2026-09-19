@@ -30,11 +30,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare('SELECT id FROM users WHERE email = ?');
         $stmt->bind_param('s', $email);
         $stmt->execute();
+        $result = $stmt->get_result();
 
-        if ($stmt->get_result()->num_rows > 0) {
+        if ($result->num_rows > 0) {
             $errors[] = 'An account with this email already exists.';
         }
-
         $stmt->close();
     }
 
@@ -125,6 +125,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="form-title">Create your account</div>
         <div class="form-sub">Join your team and start raising support tickets.</div>
+
+        <?php if (!empty($errors)): ?>
+            <div class="error">
+                  <?= htmlspecialchars($errors[0]) ?>
+            </div>
+        <?php elseif (!empty($success)): ?>
+            <div class="success">
+                <?= htmlspecialchars($success) ?>
+            </div>
+        <?php endif; ?>
 
         <form id="signupForm" method="POST" action="signup.php" novalidate>
 
