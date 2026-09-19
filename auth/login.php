@@ -1,4 +1,60 @@
 <?php
+
+session_start();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    require_once '../config/db.php';
+
+    $email = strtolower(trim($_POST['email'] ?? ''));
+    $password = $_POST['password'] ?? '';
+    $role = $_POST['role'] ?? '';
+
+    $errors = [];
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'Enter a valid email address.';
+    }
+
+    if ($password === '') {
+        $errors[] = 'Password is required.';
+    }
+
+    if (!in_array($role, ['admin', 'employee'], true)) {
+        $errors[] = 'Select a valid role.';
+    }
+
+    if (empty($errors)) {
+
+        $stmt = $conn->prepare(
+            'SELECT id, name, email, password, role FROM users WHERE email = ?'
+        );
+
+        $stmt->bind_param('s', $email);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+
+        $stmt->close();
+
+        if (!$user || !password_verify($password, $user['password'])) {
+            $errors[] = 'Invalid email or password.';
+        } elseif ($user['role'] !== $role) {
+            $errors[] = 'Invalid email or password.';
+        } else {
+
+            session_regenerate_id(true);
+
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['name'] = $user['name'];
+            $_SESSION['email'] = $user['email'];
+            $_SESSION['role'] = $user['role'];
+
+            $success = 'Login successful.';
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -60,6 +116,16 @@
 
         <div class="form-title">Welcome back 👋</div>
         <div class="form-sub">Sign in to manage your IT tickets and requests.</div>
+
+        <?php if (!empty($errors)): ?>
+            <div class="error">
+                <?= htmlspecialchars($errors[0]) ?>
+            </div>
+        <?php elseif (!empty($success)): ?>
+            <div class="success">
+                <?= htmlspecialchars($success) ?>
+            </div>
+        <?php endif; ?>
 
         <form id="loginForm" method="POST" action="login.php" novalidate>
             <div class="field">
