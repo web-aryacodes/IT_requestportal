@@ -1,5 +1,7 @@
 <?php
 
+require_once '../includes/session.php'; 
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_once '../config/db.php';
 
@@ -9,6 +11,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
 
     $errors = [];
+
+     if (
+        empty($_POST['csrf_token']) ||
+        !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])
+        ) {
+        $errors[] = 'Invalid security token. Please try again.';
+        }
 
     if ($name === '' || strlen($name) < 2 || strlen($name) > 100) {
         $errors[] = 'Enter a valid name.';
@@ -137,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form id="signupForm" method="POST" action="signup.php" novalidate>
-
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
             <div class="field">
                 <label for="name">Name</label>
                 <input type="text" id="name" name="name" placeholder="Full name" autocomplete="name">

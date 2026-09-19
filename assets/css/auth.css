@@ -292,3 +292,9 @@ body {
         font-size: 26px;
     }
 }
+
+.success {
+    margin-bottom: 18px;
+    color: #4ade80;
+    font-size: 12px;
+}

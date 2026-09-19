@@ -1,6 +1,6 @@
 <?php
 
-session_start();
+require_once '../includes/session.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -11,6 +11,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $role = $_POST['role'] ?? '';
 
     $errors = [];
+
+    if (
+        empty($_POST['csrf_token']) ||
+        !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])
+    ) {
+        $errors[] = 'Invalid security token. Please try again.';
+    }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = 'Enter a valid email address.';
@@ -128,6 +135,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form id="loginForm" method="POST" action="login.php" novalidate>
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+
             <div class="field">
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email" placeholder="you@gmail.com" autocomplete="email">
