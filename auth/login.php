@@ -9,6 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = strtolower(trim($_POST['email'] ?? ''));
     $password = $_POST['password'] ?? '';
     $role = $_POST['role'] ?? '';
+    $ipAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
     $errors = [];
 
@@ -34,6 +35,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
 
         $stmt = $conn->prepare(
+            'SELECT attempts, last_attempt FROM login_attempts WHERE email = ? AND ip_address = ?'
+        );
+
+        $stmt->bind_param('ss', $email, $ipAddress);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+        $attemptData = $result->fetch_assoc();
+
+        $stmt->close();
+
+        if ($attemptData) {
+
+            $lastAttempt = strtotime($attemptData['last_attempt']);
+
+            if ($attemptData['attempts'] >= 5 && time() - $lastAttempt < 900) {
+                $errors[] = 'Too many login attempts. Please try again later.';
+            } elseif (time() - $lastAttempt >= 900) {
+
+                $stmt = $conn->prepare(
+                    'DELETE FROM login_attempts WHERE email = ? AND ip_address = ?'
+                );
+
+                $stmt->bind_param('ss', $email, $ipAddress);
+                $stmt->execute();
+                $stmt->close();
+            }
+        }
+    }
+
+    if (empty($errors)) {
+
+        $stmt = $conn->prepare(
             'SELECT id, name, email, password, role FROM users WHERE email = ?'
         );
 
@@ -46,10 +80,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
 
         if (!$user || !password_verify($password, $user['password'])) {
+
+            $stmt = $conn->prepare(
+                'INSERT INTO login_attempts (email, ip_address, attempts)
+                 VALUES (?, ?, 1)
+                 ON DUPLICATE KEY UPDATE attempts = attempts + 1, last_attempt = CURRENT_TIMESTAMP'
+            );
+
+            $stmt->bind_param('ss', $email, $ipAddress);
+            $stmt->execute();
+            $stmt->close();
+
             $errors[] = 'Invalid email or password.';
+
         } elseif ($user['role'] !== $role) {
+
+            $stmt = $conn->prepare(
+                'INSERT INTO login_attempts (email, ip_address, attempts)
+                 VALUES (?, ?, 1)
+                 ON DUPLICATE KEY UPDATE attempts = attempts + 1, last_attempt = CURRENT_TIMESTAMP'
+            );
+
+            $stmt->bind_param('ss', $email, $ipAddress);
+            $stmt->execute();
+            $stmt->close();
+
             $errors[] = 'Invalid email or password.';
+
         } else {
+
+            $stmt = $conn->prepare(
+                'DELETE FROM login_attempts WHERE email = ? AND ip_address = ?'
+            );
+
+            $stmt->bind_param('ss', $email, $ipAddress);
+            $stmt->execute();
+            $stmt->close();
 
             session_regenerate_id(true);
 
