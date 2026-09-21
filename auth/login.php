@@ -48,11 +48,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($attemptData) {
 
-            $lastAttempt = strtotime($attemptData['last_attempt']);
+            $stmt = $conn->prepare(
+                'SELECT attempts
+                 FROM login_attempts
+                 WHERE email = ?
+                 AND ip_address = ?
+                 AND last_attempt >= (NOW() - INTERVAL 15 MINUTE)'
+            );
 
-            if ($attemptData['attempts'] >= 5 && time() - $lastAttempt < 900) {
+            $stmt->bind_param('ss', $email, $ipAddress);
+            $stmt->execute();
+
+            $result = $stmt->get_result();
+            $activeLimit = $result->fetch_assoc();
+
+            $stmt->close();
+
+            if ($activeLimit && $activeLimit['attempts'] >= 5) {
                 $errors[] = 'Too many login attempts. Please try again later.';
-            } elseif (time() - $lastAttempt >= 900) {
+            } elseif (!$activeLimit) {
 
                 $stmt = $conn->prepare(
                     'DELETE FROM login_attempts WHERE email = ? AND ip_address = ?'
@@ -124,7 +138,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['email'] = $user['email'];
             $_SESSION['role'] = $user['role'];
 
-            $success = 'Login successful.';
+            if ($user['role'] === 'employee') {
+                header('Location: ../employee/dashboard.php');
+                exit;
+            }
+
+            if ($user['role'] === 'admin') {
+                header('Location: ../admin/dashboard.php');
+                exit;
+            }
         }
     }
 }
