@@ -172,6 +172,15 @@ $tickets = $stmt->get_result();
                                             type="button"
                                             class="ticket-view"
                                             data-ticket-id="<?php echo (int) $ticket['id']; ?>"
+                                            data-employee-name="<?php echo htmlspecialchars($ticket['emp_name'], ENT_QUOTES); ?>"
+                                            data-employee-id="<?php echo htmlspecialchars($ticket['emp_id'], ENT_QUOTES); ?>"
+                                            data-department="<?php echo htmlspecialchars($ticket['department'], ENT_QUOTES); ?>"
+                                            data-issue-type="<?php echo htmlspecialchars($ticket['issue_type'], ENT_QUOTES); ?>"
+                                            data-priority="<?php echo htmlspecialchars($ticket['priority'], ENT_QUOTES); ?>"
+                                            data-contact="<?php echo htmlspecialchars($ticket['contact'], ENT_QUOTES); ?>"
+                                            data-description="<?php echo htmlspecialchars($ticket['description'], ENT_QUOTES); ?>"
+                                            data-status="<?php echo htmlspecialchars($ticket['status'], ENT_QUOTES); ?>"
+                                            data-created="<?php echo htmlspecialchars($ticket['created_at'], ENT_QUOTES); ?>"
                                         >
                                             View
                                         </button>
@@ -199,5 +208,70 @@ $tickets = $stmt->get_result();
 
     </main>
 
+    <div class="ticket-modal" id="ticketModal">
+        <div class="ticket-modal-content">
+            <button type="button" class="ticket-modal-close" id="ticketModalClose">
+                ×
+            </button>
+
+            <h2>Ticket Details</h2>
+
+            <div class="ticket-details">
+
+                <div class="ticket-detail">
+                    <strong>Ticket #</strong>
+                    <span id="modalTicketId"></span>
+                </div>
+
+                <div class="ticket-detail">
+                    <strong>Employee Name</strong>
+                    <span id="modalEmployeeName"></span>
+                </div>
+
+                <div class="ticket-detail">
+                    <strong>Employee ID</strong>
+                    <span id="modalEmployeeId"></span>
+                </div>
+
+                <div class="ticket-detail">
+                    <strong>Department</strong>
+                    <span id="modalDepartment"></span>
+                </div>
+
+                <div class="ticket-detail">
+                    <strong>Issue Type</strong>
+                    <span id="modalIssueType"></span>
+                </div>
+
+                <div class="ticket-detail">
+                    <strong>Priority</strong>
+                    <span id="modalPriority"></span>
+                </div>
+
+                <div class="ticket-detail">
+                    <strong>Contact Number</strong>
+                    <span id="modalContact"></span>
+                </div>
+
+                <div class="ticket-detail">
+                    <strong>Status</strong>
+                    <span id="modalStatus"></span>
+                </div>
+
+                <div class="ticket-detail">
+                    <strong>Created</strong>
+                    <span id="modalCreated"></span>
+                </div>
+
+                <div class="ticket-detail full-width">
+                    <strong>Issue Description</strong>
+                    <p id="modalDescription"></p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+        <script src="../assets/js/admin.js"></script>
 </body>
 </html>
