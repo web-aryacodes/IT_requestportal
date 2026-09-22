@@ -184,6 +184,16 @@ $tickets = $stmt->get_result();
                                         >
                                             View
                                         </button>
+
+                                        <?php if ($ticket['status'] === 'Open'): ?>
+                                            <form method="POST" action="resolve-ticket.php">
+                                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
+                                                <input type="hidden" name="ticket_id" value="<?php echo (int) $ticket['id']; ?>">
+                                                <button type="submit" class="ticket-resolve">
+                                                    Resolve
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
 
