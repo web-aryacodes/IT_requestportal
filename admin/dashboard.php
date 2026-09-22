@@ -5,11 +5,17 @@ requireRole('admin');
 
 require_once '../config/db.php';
 
+$filter = $_GET['filter'] ?? 'all';
+
+if (!in_array($filter, ['all', 'open', 'resolved'], true)) {
+    $filter = 'all';
+}
+
 $stmt = $conn->prepare(
-    'SELECT
-        COUNT(*) AS total_tickets,
-        SUM(status = "Open") AS open_tickets,
-        SUM(status = "Resolved") AS resolved_tickets
+    'SELECT 
+        COUNT(*) AS total_tickets, 
+        SUM(status = "Open") AS open_tickets, 
+        SUM(status = "Resolved") AS resolved_tickets 
      FROM tickets'
 );
 $stmt->execute();
@@ -23,11 +29,25 @@ $totalTickets = (int) ($stats['total_tickets'] ?? 0);
 $openTickets = (int) ($stats['open_tickets'] ?? 0);
 $resolvedTickets = (int) ($stats['resolved_tickets'] ?? 0);
 
-$stmt = $conn->prepare(
-    'SELECT id, emp_name, issue_type, priority, status, created_at
-     FROM tickets
-     ORDER BY created_at DESC'
-);
+if ($filter === 'all') {
+    $stmt = $conn->prepare(
+        'SELECT id, emp_name, emp_id, department, issue_type, priority, contact, description, status, created_at
+         FROM tickets
+         ORDER BY created_at DESC'
+    );
+} else {
+    $status = $filter === 'open' ? 'Open' : 'Resolved';
+
+    $stmt = $conn->prepare(
+        'SELECT id, emp_name, emp_id, department, issue_type, priority, contact, description, status, created_at
+         FROM tickets
+         WHERE status = ?
+         ORDER BY created_at DESC'
+    );
+
+    $stmt->bind_param('s', $status);
+}
+
 $stmt->execute();
 
 $tickets = $stmt->get_result();
@@ -84,17 +104,28 @@ $tickets = $stmt->get_result();
             <h2>Tickets</h2>
 
             <div class="dashboard-actions">
-                <button type="button" class="action-btn">
+
+                <a
+                    href="dashboard.php?filter=all"
+                    class="action-btn <?php echo $filter === 'all' ? '' : 'secondary'; ?>"
+                >
                     All
-                </button>
+                </a>
 
-                <button type="button" class="action-btn secondary">
+                <a
+                    href="dashboard.php?filter=open"
+                    class="action-btn <?php echo $filter === 'open' ? '' : 'secondary'; ?>"
+                >
                     Open
-                </button>
+                </a>
 
-                <button type="button" class="action-btn secondary">
+                <a
+                    href="dashboard.php?filter=resolved"
+                    class="action-btn <?php echo $filter === 'resolved' ? '' : 'secondary'; ?>"
+                >
                     Resolved
-                </button>
+                </a>
+
             </div>
 
             <div class="table-wrapper">
@@ -137,7 +168,13 @@ $tickets = $stmt->get_result();
                                     </td>
 
                                     <td>
-                                        View
+                                        <button
+                                            type="button"
+                                            class="ticket-view"
+                                            data-ticket-id="<?php echo (int) $ticket['id']; ?>"
+                                        >
+                                            View
+                                        </button>
                                     </td>
                                 </tr>
 
