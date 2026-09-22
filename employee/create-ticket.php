@@ -32,12 +32,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Employee ID is required.';
     }
 
-    if ($department === '') {
-        $errors[] = 'Select a department.';
+    $allowedDepartments = ['IT', 'HR', 'Finance', 'Sales', 'Operations'];
+
+    if (!in_array($department, $allowedDepartments, true)) {
+        $errors[] = 'Select a valid department.';
     }
 
-    if ($issueType === '') {
-        $errors[] = 'Select an issue type.';
+    $allowedIssueTypes = ['Hardware', 'Software', 'Network', 'Email', 'Other'];
+
+    if (!in_array($issueType, $allowedIssueTypes, true)) {
+        $errors[] = 'Select a valid issue type.';
     }
 
     if (!in_array($priority, ['Low', 'Medium', 'High'], true)) {

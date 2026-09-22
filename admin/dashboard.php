@@ -69,9 +69,17 @@ $tickets = $stmt->get_result();
             <p>Internal IT Helpdesk System</p>
         </div>
 
-        <a href="../auth/logout.php" class="action-btn secondary">
-            Logout
-        </a>
+        <form method="POST" action="../auth/logout.php">
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>"
+            >
+            <button type="submit" class="action-btn secondary">
+                Logout
+            </button>
+        </form>
+        
     </header>
 
     <main class="container">

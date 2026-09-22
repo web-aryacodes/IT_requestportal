@@ -2,6 +2,19 @@
 
 require_once '../includes/session.php';
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    exit('Method not allowed.');
+}
+
+if (
+    empty($_POST['csrf_token']) ||
+    !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])
+) {
+    http_response_code(403);
+    exit('Invalid security token.');
+}
+
 $_SESSION = [];
 
 if (ini_get('session.use_cookies')) {
