@@ -1,5 +1,10 @@
 <?php
 
+define('ENVIRONMENT', 'development'); 
+
+require_once __DIR__ . '/error-handler.php';
+
+
 session_set_cookie_params([
     'httponly' => true,
     'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
