@@ -54,9 +54,16 @@ if (!$ticket) {
         <p>Internal IT Helpdesk System</p>
     </div>
 
-    <button onclick="window.location.href='../auth/logout.php'">
-        Logout
-    </button>
+        <form method="POST" action="../auth/logout.php">
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>"
+            >
+            <button type="submit" class="action-btn secondary">
+                Logout
+            </button>
+        </form>
 </div>
 
 <div class="container">
